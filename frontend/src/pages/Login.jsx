@@ -1,98 +1,47 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext.jsx';
-import { LogIn, Key, Mail } from 'lucide-react';
+import React from "react";
+import { Link } from "react-router-dom";
+import LoginForm from "../features/auth/LoginForm";
+import { useAuth } from "../features/auth/useAuth";
+import { ShieldCheck } from "lucide-react";
 
 export default function Login() {
-  const { login } = useAuth();
-  const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const { login, isLoggingIn } = useAuth();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!email.trim() || !password.trim()) {
-      setError('Please fill in all fields');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
+  const handleLogin = async (data) => {
     try {
-      await login(email, password);
-      navigate('/');
-    } catch (err) {
-      setError(err.message || 'Invalid email or password');
-    } finally {
-      setLoading(false);
+      await login(data);
+    } catch (e) {
+      // Errors are handled inside hook mutate triggers
     }
   };
 
   return (
-    <div className="auth-page">
-      <div className="glass-card auth-card">
-        <div className="auth-header">
-          <h1 className="auth-title">Welcome Back</h1>
-          <p className="auth-subtitle">Sign in to manage your posts and profile</p>
+    <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 px-4 py-12 transition">
+      <div className="w-full max-w-[440px] space-y-6">
+        <div className="flex flex-col items-center text-center space-y-2">
+          <div className="h-12 w-12 flex items-center justify-center bg-emerald-100 dark:bg-emerald-950/30 text-emerald-600 rounded-2xl shadow-sm">
+            <ShieldCheck size={28} />
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mt-2">
+            Welcome back
+          </h1>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            Sign in to your InventoTrack control panel
+          </p>
         </div>
 
-        {error && (
-          <div className="alert alert-danger">
-            <span>{error}</span>
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/80 rounded-2xl shadow-xl p-8 space-y-6">
+          <LoginForm onSubmit={handleLogin} isLoading={isLoggingIn} />
+
+          <div className="text-center text-sm text-zinc-500 dark:text-zinc-400">
+            Don't have an account?{" "}
+            <Link
+              to="/register"
+              className="font-medium text-emerald-600 hover:text-emerald-500 dark:hover:text-emerald-400 transition"
+            >
+              Sign up
+            </Link>
           </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Mail size={14} />
-              <span>Email Address</span>
-            </label>
-            <input
-              type="email"
-              className="form-input"
-              placeholder="name@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Key size={14} />
-              <span>Password</span>
-            </label>
-            <input
-              type="password"
-              className="form-input"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="btn btn-primary"
-            style={{ width: '100%', marginTop: '10px' }}
-            disabled={loading}
-          >
-            <LogIn size={18} />
-            <span>{loading ? 'Signing in...' : 'Sign In'}</span>
-          </button>
-        </form>
-
-        <div className="auth-footer">
-          Don't have an account?{' '}
-          <Link to="/register" className="auth-link">
-            Sign up
-          </Link>
         </div>
       </div>
     </div>

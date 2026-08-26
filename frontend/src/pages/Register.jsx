@@ -1,119 +1,47 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext.jsx';
-import { UserPlus, Mail, Key, User } from 'lucide-react';
+import React from "react";
+import { Link } from "react-router-dom";
+import RegisterForm from "../features/auth/RegisterForm";
+import { useAuth } from "../features/auth/useAuth";
+import { ShieldAlert } from "lucide-react";
 
 export default function Register() {
-  const { register } = useAuth();
-  const navigate = useNavigate();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const { register: signup, isRegistering } = useAuth();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!name.trim() || !email.trim() || !password.trim()) {
-      setError('Please fill in all fields');
-      return;
-    }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
+  const handleRegister = async (data) => {
     try {
-      await register(name, email, password);
-      navigate('/');
-    } catch (err) {
-      setError(err.message || 'Registration failed');
-    } finally {
-      setLoading(false);
+      await signup(data);
+    } catch (e) {
+      // Errors handled in hook mutate triggers
     }
   };
 
   return (
-    <div className="auth-page">
-      <div className="glass-card auth-card">
-        <div className="auth-header">
-          <h1 className="auth-title">Create Account</h1>
-          <p className="auth-subtitle">Get started by creating your account</p>
+    <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 px-4 py-12 transition">
+      <div className="w-full max-w-[440px] space-y-6">
+        <div className="flex flex-col items-center text-center space-y-2">
+          <div className="h-12 w-12 flex items-center justify-center bg-emerald-100 dark:bg-emerald-950/30 text-emerald-600 rounded-2xl shadow-sm">
+            <ShieldAlert size={28} />
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mt-2">
+            Create an account
+          </h1>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            Set up your admin profile for InventoTrack
+          </p>
         </div>
 
-        {error && (
-          <div className="alert alert-danger">
-            <span>{error}</span>
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/80 rounded-2xl shadow-xl p-8 space-y-6">
+          <RegisterForm onSubmit={handleRegister} isLoading={isRegistering} />
+
+          <div className="text-center text-sm text-zinc-500 dark:text-zinc-400">
+            Already have an account?{" "}
+            <Link
+              to="/login"
+              className="font-medium text-emerald-600 hover:text-emerald-500 dark:hover:text-emerald-400 transition"
+            >
+              Sign in
+            </Link>
           </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <User size={14} />
-              <span>Full Name</span>
-            </label>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="John Doe"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              disabled={loading}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Mail size={14} />
-              <span>Email Address</span>
-            </label>
-            <input
-              type="email"
-              className="form-input"
-              placeholder="name@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Key size={14} />
-              <span>Password</span>
-            </label>
-            <input
-              type="password"
-              className="form-input"
-              placeholder="•••••••• (Min 6 chars)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="btn btn-primary"
-            style={{ width: '100%', marginTop: '10px' }}
-            disabled={loading}
-          >
-            <UserPlus size={18} />
-            <span>{loading ? 'Creating account...' : 'Create Account'}</span>
-          </button>
-        </form>
-
-        <div className="auth-footer">
-          Already have an account?{' '}
-          <Link to="/login" className="auth-link">
-            Sign in
-          </Link>
         </div>
       </div>
     </div>
