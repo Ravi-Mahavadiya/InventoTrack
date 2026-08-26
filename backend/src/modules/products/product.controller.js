@@ -48,10 +48,10 @@ export const deleteProduct = async (req, res, next) => {
 
 export const exportCSV = async (req, res, next) => {
   try {
-    const csvContent = await productService.generateCSV();
-    res.setHeader("Content-Type", "text/csv");
-    res.setHeader("Content-Disposition", "attachment; filename=\"inventory-export.csv\"");
-    return res.status(200).send(csvContent);
+    const buffer = await productService.generateExcel();
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", "attachment; filename=\"inventory-export.xlsx\"");
+    return res.status(200).send(buffer);
   } catch (err) {
     return next(err);
   }

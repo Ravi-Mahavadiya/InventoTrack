@@ -90,18 +90,17 @@ export default function ProductsPage() {
 
   async function handleExport() {
     try {
-      const csvContent = await apiExportProducts();
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const blob = await apiExportProducts();
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", "inventory-export.csv");
+      link.setAttribute("download", "inventory-export.xlsx");
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      toast.success("CSV file exported successfully!");
+      toast.success("Excel sheet exported successfully!");
     } catch (e) {
-      toast.error("Failed to export inventory CSV.");
+      toast.error("Failed to export inventory Excel.");
     }
   }
 

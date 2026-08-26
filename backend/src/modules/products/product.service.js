@@ -1,6 +1,7 @@
 import Product, { computeStockStatus } from "./product.model.js";
 import Category from "../categories/category.model.js";
 import QRCode from "qrcode";
+import ExcelJS from "exceljs";
 
 export const getProducts = async (query = {}) => {
   const {
@@ -147,35 +148,73 @@ export const deleteProduct = async (id) => {
   return { message: "Product deleted successfully" };
 };
 
-// CSV Export Generator
-export const generateCSV = async () => {
+// Excel Export Workbook Generator
+export const generateExcel = async () => {
   const products = await Product.find().populate("category", "name");
   
-  const escapeCSV = (val) => {
-    if (val === null || val === undefined) return "";
-    const str = String(val);
-    if (str.includes(",") || str.includes("\"") || str.includes("\n") || str.includes("\r")) {
-      return `"${str.replace(/"/g, "\"\"")}"`;
-    }
-    return str;
-  };
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Inventory");
 
-  const headers = ["Name", "SKU", "Category", "Description", "Quantity", "UnitPrice", "SupplierName"];
-  const rows = [headers.join(",")];
+  // Define columns
+  worksheet.columns = [
+    { header: "Name", key: "name", width: 25 },
+    { header: "SKU", key: "sku", width: 15 },
+    { header: "Category", key: "category", width: 18 },
+    { header: "Description", key: "description", width: 30 },
+    { header: "Quantity", key: "quantity", width: 12 },
+    { header: "Unit Price", key: "unitPrice", width: 15 },
+    { header: "Supplier Name", key: "supplierName", width: 22 }
+  ];
 
+  // Populating rows
   for (const p of products) {
-    rows.push([
-      escapeCSV(p.name),
-      escapeCSV(p.sku),
-      escapeCSV(p.category?.name || ""),
-      escapeCSV(p.description || ""),
-      p.quantity,
-      p.unitPrice,
-      escapeCSV(p.supplierName || "")
-    ].join(","));
+    worksheet.addRow({
+      name: p.name,
+      sku: p.sku,
+      category: p.category?.name || "Uncategorized",
+      description: p.description || "",
+      quantity: p.quantity,
+      unitPrice: p.unitPrice,
+      supplierName: p.supplierName || ""
+    });
   }
 
-  return rows.join("\n");
+  // Format headers (Row 1)
+  const headerRow = worksheet.getRow(1);
+  headerRow.height = 25;
+  headerRow.font = { name: "Calibri", size: 11, bold: true, color: { argb: "FFFFFFFF" } };
+  headerRow.fill = {
+    type: "pattern",
+    pattern: "solid",
+    fgColor: { argb: "FF4F46E5" } // Theme Indigo color
+  };
+  headerRow.alignment = { vertical: "middle", horizontal: "center" };
+
+  // Explicitly lock the header row
+  headerRow.eachCell((cell) => {
+    cell.protection = { locked: true };
+  });
+
+  // Protect the sheet with a default password, enabling cell selections
+  await worksheet.protect("inventra_secret", {
+    selectLockedCells: true,
+    selectUnlockedCells: true
+  });
+
+  // Unlock all other data cells
+  for (let i = 2; i <= products.length + 1; i++) {
+    const row = worksheet.getRow(i);
+    row.eachCell((cell) => {
+      cell.protection = { locked: false };
+    });
+  }
+
+  // Set number format for Unit Price column (Column 6)
+  worksheet.getColumn(6).numFmt = "$#,##0.00";
+
+  // Generate buffer
+  const buffer = await workbook.xlsx.writeBuffer();
+  return buffer;
 };
 
 // CSV Importer / Parser

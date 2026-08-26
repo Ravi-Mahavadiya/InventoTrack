@@ -224,8 +224,8 @@ export async function apiAdjustStock(productId: string, data: StockAdjustData, _
   return mapTransaction(response.data.transaction);
 }
 
-export async function apiExportProducts(): Promise<string> {
-  const { data } = await client.get("/products/export");
+export async function apiExportProducts(): Promise<Blob> {
+  const { data } = await client.get("/products/export", { responseType: "blob" });
   return data;
 }
 

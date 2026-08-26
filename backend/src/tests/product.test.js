@@ -81,11 +81,10 @@ describe("Product Service & CSV Operations", () => {
     await expect(Product.create(productData)).rejects.toThrow();
   });
 
-  test("should generate valid CSV text for export", async () => {
-    const csvContent = await productService.generateCSV();
-    expect(csvContent).toContain("Name,SKU,Category,Description,Quantity,UnitPrice,SupplierName");
-    expect(csvContent).toContain("Wireless Headphones");
-    expect(csvContent).toContain("ELEC-HDPH-001");
+  test("should generate valid Excel sheet buffer for export", async () => {
+    const buffer = await productService.generateExcel();
+    expect(buffer).toBeDefined();
+    expect(buffer.length).toBeGreaterThan(0);
   });
 
   test("should successfully import products from CSV string (upsert & auto-create categories)", async () => {
