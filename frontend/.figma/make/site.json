@@ -1,0 +1,10 @@
+{
+  "description": "Manage your inventory effortlessly with a user-friendly system that allows for product tracking, stock management, and secure user authentication.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
