@@ -4,6 +4,10 @@ import Category from "../modules/categories/category.model.js";
 import Product from "../modules/products/product.model.js";
 import Transaction from "../modules/transactions/transaction.model.js";
 import User from "../modules/users/user.model.js";
+import Role from "../modules/roles/role.model.js";
+import Permission from "../modules/permissions/permission.model.js";
+import RolePermission from "../modules/roles/rolePermission.model.js";
+import { hashPassword } from "../utils/password.js";
 
 dotenv.config();
 
@@ -16,29 +20,113 @@ async function runSeed() {
     console.log("Database connected successfully.");
 
     // Clean existing data
-    console.log("Cleaning existing Category, Product, and Transaction collections...");
+    console.log("Cleaning existing collections...");
     await Transaction.deleteMany({});
     await Product.deleteMany({});
     await Category.deleteMany({});
+    await RolePermission.deleteMany({});
+    await Permission.deleteMany({});
+    await User.deleteMany({});
+    await Role.deleteMany({});
     console.log("Collections cleared.");
 
-    // Find any user to assign transaction logs to
-    const defaultUser = await User.findOne({});
-    const userId = defaultUser ? defaultUser._id : null;
-    if (userId) {
-      console.log(`Transactions will be linked to user: ${defaultUser.name} (${defaultUser.email})`);
-    } else {
-      console.log("Warning: No user found. Transactions will be created without linked users.");
+    // 1. Seed Roles
+    console.log("Seeding Roles...");
+    const adminRole = await Role.create({ name: "ADMIN" });
+    const managerRole = await Role.create({ name: "INVENTORY_MANAGER" });
+    const staffRole = await Role.create({ name: "STAFF" });
+
+    // 2. Seed Permissions
+    console.log("Seeding Permissions...");
+    const modules = ["PRODUCT", "CATEGORY", "STOCK_TRANSACTION", "USER"];
+    const permissionDocs = {};
+
+    for (const mod of modules) {
+      permissionDocs[mod] = {
+        ADMIN: await Permission.create({
+          module: mod,
+          can_create: mod !== "STOCK_TRANSACTION",
+          can_view: mod !== "STOCK_TRANSACTION",
+          can_edit: true, // Admin can edit all, including STOCK_TRANSACTION
+          can_delete: mod !== "STOCK_TRANSACTION"
+        }),
+        INVENTORY_MANAGER: await Permission.create({
+          module: mod,
+          can_create: false,
+          can_view: mod === "PRODUCT",
+          can_edit: mod === "STOCK_TRANSACTION",
+          can_delete: false
+        }),
+        STAFF: await Permission.create({
+          module: mod,
+          can_create: mod === "PRODUCT" || mod === "CATEGORY",
+          can_view: mod === "PRODUCT" || mod === "CATEGORY",
+          can_edit: mod === "PRODUCT" || mod === "CATEGORY",
+          can_delete: mod === "PRODUCT" || mod === "CATEGORY"
+        })
+      };
     }
 
-    // 1. Seed Categories
+    // 3. Seed Role-Permissions mappings
+    console.log("Establishing Role-Permission relationships...");
+    for (const mod of modules) {
+      // Admin mappings
+      await RolePermission.create({
+        role: adminRole._id,
+        permission: permissionDocs[mod].ADMIN._id
+      });
+      // Manager mappings
+      await RolePermission.create({
+        role: managerRole._id,
+        permission: permissionDocs[mod].INVENTORY_MANAGER._id
+      });
+      // Staff mappings
+      await RolePermission.create({
+        role: staffRole._id,
+        permission: permissionDocs[mod].STAFF._id
+      });
+    }
+
+    // 4. Seed Default Users with correct hashed passwords
+    console.log("Seeding default users...");
+    const adminPass = await hashPassword("AdminPass123!");
+    const managerPass = await hashPassword("ManagerPass123!");
+    const staffPass = await hashPassword("StaffPass123!");
+
+    const adminUser = await User.create({
+      name: "Admin User",
+      email: "admin@inventotrack.com",
+      password: adminPass,
+      role: adminRole._id
+    });
+
+    const managerUser = await User.create({
+      name: "Inventory Manager",
+      email: "manager@inventotrack.com",
+      password: managerPass,
+      role: managerRole._id
+    });
+
+    const staffUser = await User.create({
+      name: "Staff User",
+      email: "staff@inventotrack.com",
+      password: staffPass,
+      role: staffRole._id
+    });
+
+    console.log("Default accounts created:");
+    console.log(" - Admin: admin@inventotrack.com / AdminPass123!");
+    console.log(" - Manager: manager@inventotrack.com / ManagerPass123!");
+    console.log(" - Staff: staff@inventotrack.com / StaffPass123!");
+
+    // 5. Seed Categories
     console.log("Seeding Categories...");
     const electronics = await Category.create({ name: "Electronics", description: "Tech gadgets, gear, and digital devices" });
     const furniture = await Category.create({ name: "Furniture", description: "Home and office workspace furniture" });
     const officeSupplies = await Category.create({ name: "Office Supplies", description: "Stationery, notebooks, and writing utilities" });
     const fitness = await Category.create({ name: "Fitness Gear", description: "Workout weights, resistance bands, and active items" });
 
-    // 2. Seed Products
+    // 6. Seed Products
     console.log("Seeding Products...");
     // Electronics
     const mbp = await Product.create({
@@ -60,7 +148,7 @@ async function runSeed() {
       quantity: 4,
       unitPrice: 89.99,
       supplierName: "Keychron Co.",
-      lowStockThreshold: 10 // Quantity (4) is below threshold (10) -> Low Stock!
+      lowStockThreshold: 10
     });
 
     const usbHub = await Product.create({
@@ -71,7 +159,7 @@ async function runSeed() {
       quantity: 0,
       unitPrice: 39.99,
       supplierName: "Anker Innovations",
-      lowStockThreshold: 10 // Quantity (0) is 0 -> Out of Stock!
+      lowStockThreshold: 10
     });
 
     // Furniture
@@ -94,7 +182,7 @@ async function runSeed() {
       quantity: 8,
       unitPrice: 499.00,
       supplierName: "Fully Workspace",
-      lowStockThreshold: 10 // Quantity (8) is below threshold (10) -> Low Stock!
+      lowStockThreshold: 10
     });
 
     // Office Supplies
@@ -120,7 +208,7 @@ async function runSeed() {
       lowStockThreshold: 15
     });
 
-    // 3. Seed Stock Management Transactions
+    // 7. Seed Stock Management Transactions
     console.log("Seeding Stock Transactions history...");
 
     // Keychron Keyboard Transactions
@@ -132,7 +220,7 @@ async function runSeed() {
         previousQuantity: 0,
         newQuantity: 10,
         reason: "Initial purchase order stocking",
-        user: userId
+        user: adminUser._id
       },
       {
         product: keychron._id,
@@ -141,7 +229,7 @@ async function runSeed() {
         previousQuantity: 10,
         newQuantity: 4,
         reason: "Customer sale order #11054",
-        user: userId
+        user: adminUser._id
       }
     ]);
 
@@ -153,10 +241,10 @@ async function runSeed() {
       previousQuantity: 0,
       newQuantity: 25,
       reason: "Supplier direct delivery",
-      user: userId
+      user: adminUser._id
     });
 
-    // Anker Hub Transactions (went to 5, then reduced to 0)
+    // Anker Hub Transactions
     await Transaction.create([
       {
         product: usbHub._id,
@@ -165,7 +253,7 @@ async function runSeed() {
         previousQuantity: 0,
         newQuantity: 5,
         reason: "Trial inventory import",
-        user: userId
+        user: adminUser._id
       },
       {
         product: usbHub._id,
@@ -174,7 +262,7 @@ async function runSeed() {
         previousQuantity: 5,
         newQuantity: 0,
         reason: "Defective units batch recall",
-        user: userId
+        user: adminUser._id
       }
     ]);
 
@@ -187,7 +275,7 @@ async function runSeed() {
         previousQuantity: 0,
         newQuantity: 12,
         reason: "Warehouse transfer",
-        user: userId
+        user: adminUser._id
       },
       {
         product: desk._id,
@@ -196,11 +284,11 @@ async function runSeed() {
         previousQuantity: 12,
         newQuantity: 8,
         reason: "Bulk workstation setup order #205",
-        user: userId
+        user: adminUser._id
       }
     ]);
 
-    console.log("Dummy seed data inserted successfully!");
+    console.log("Database seeded successfully with RBAC roles, default users, and sample inventory!");
   } catch (err) {
     console.error("Seeding operation failed:", err);
   } finally {

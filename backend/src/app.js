@@ -14,6 +14,7 @@ import categoryRoutes from "./modules/categories/category.routes.js";
 import productRoutes from "./modules/products/product.routes.js";
 import transactionRoutes from "./modules/transactions/transaction.routes.js";
 import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
+import userRoutes from "./modules/users/user.routes.js";
 import errorMiddleware from "./middleware/error.middleware.js";
 
 dotenv.config();
@@ -45,6 +46,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/users", userRoutes);
 
 // 404 Handler
 app.use((req, res, next) => {
@@ -72,6 +74,8 @@ async function startServer() {
   });
 }
 
-startServer();
+if (process.env.NODE_ENV !== "test") {
+  startServer();
+}
 
 export default app;
