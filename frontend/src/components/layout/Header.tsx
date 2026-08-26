@@ -8,6 +8,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/products": "Products",
   "/categories": "Categories",
   "/stock": "Stock Management",
+  "/audit-logs": "Audit Logs",
 };
 
 export default function Header() {
