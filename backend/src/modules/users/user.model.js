@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
     password: { type: String, required: true, select: false },
-    role: { type: mongoose.Schema.Types.ObjectId, ref: "Role", required: true },
+    role: { type: String, enum: ["admin", "user"], default: "admin" },
   },
   { timestamps: true },
 );
