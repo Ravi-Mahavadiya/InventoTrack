@@ -100,7 +100,7 @@ export default function AuditLogsPage() {
         <button
           onClick={fetchLogs}
           disabled={loading}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl text-zinc-700 dark:text-zinc-200 bg-zinc-50 dark:bg-zinc-850 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 disabled:opacity-50 transition-all duration-200"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl text-zinc-700 dark:text-zinc-200 bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 disabled:opacity-50 transition-all duration-200"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           Reload logs
@@ -108,7 +108,7 @@ export default function AuditLogsPage() {
       </div>
 
       {/* Filter and search controls */}
-      <div className="flex flex-col sm:flex-row gap-3 bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-150 dark:border-zinc-800 shadow-sm transition-colors duration-200">
+      <div className="flex flex-col sm:flex-row gap-3 bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-155 dark:border-zinc-800 shadow-sm transition-colors duration-200">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" size={16} />
           <input
@@ -116,14 +116,14 @@ export default function AuditLogsPage() {
             placeholder="Search by Product Name, SKU, User or action details..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 text-sm rounded-lg border border-zinc-200 dark:border-zinc-850 bg-zinc-50 dark:bg-zinc-850 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-500/10 focus:border-indigo-500 transition-colors"
+            className="w-full pl-10 pr-4 py-2.5 text-sm rounded-lg border border-zinc-200 dark:border-zinc-705 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-500/10 focus:border-indigo-500 transition-colors"
           />
         </div>
         <div className="w-full sm:w-48">
           <select
             value={actionFilter}
             onChange={(e) => setActionFilter(e.target.value)}
-            className="w-full px-3 py-2.5 text-sm rounded-lg border border-zinc-200 dark:border-zinc-850 bg-zinc-50 dark:bg-zinc-850 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors cursor-pointer"
+            className="w-full px-3 py-2.5 text-sm rounded-lg border border-zinc-200 dark:border-zinc-705 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors cursor-pointer"
           >
             <option value="ALL">All Actions</option>
             <option value="PRODUCT_CREATED">Created</option>
@@ -143,7 +143,7 @@ export default function AuditLogsPage() {
           </div>
         ) : filteredLogs.length === 0 ? (
           <div className="py-24 text-center max-w-md mx-auto">
-            <div className="w-12 h-12 bg-zinc-50 dark:bg-zinc-850 rounded-xl flex items-center justify-center mx-auto mb-4 border border-zinc-200 dark:border-zinc-850">
+            <div className="w-12 h-12 bg-zinc-50 dark:bg-zinc-800 rounded-xl flex items-center justify-center mx-auto mb-4 border border-zinc-200 dark:border-zinc-700">
               <AlertCircle className="text-zinc-400 dark:text-zinc-500" size={24} />
             </div>
             <h3 className="text-base font-bold text-zinc-800 dark:text-white">No logs found</h3>
@@ -155,7 +155,7 @@ export default function AuditLogsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-zinc-50/50 dark:bg-zinc-850/50 border-b border-zinc-150 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 font-semibold text-xs tracking-wider uppercase">
+                <tr className="bg-zinc-50/50 dark:bg-zinc-800/50 border-b border-zinc-155 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 font-semibold text-xs tracking-wider uppercase">
                   <th className="px-6 py-4">Action</th>
                   <th className="px-6 py-4">Product Name / SKU</th>
                   <th className="px-6 py-4">Audit Details</th>
@@ -163,11 +163,11 @@ export default function AuditLogsPage() {
                   <th className="px-6 py-4">Timestamp</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-150 dark:divide-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm">
+              <tbody className="divide-y divide-zinc-155 dark:divide-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm">
                 {filteredLogs.map((log) => (
                   <tr 
                     key={log._id}
-                    className="hover:bg-zinc-50/20 dark:hover:bg-zinc-850/10 transition-colors duration-150"
+                    className="hover:bg-zinc-50/20 dark:hover:bg-zinc-800/10 transition-colors duration-150"
                   >
                     {/* Action Badge */}
                     <td className="px-6 py-4.5 whitespace-nowrap">

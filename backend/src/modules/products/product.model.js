@@ -16,6 +16,7 @@ const productSchema = new mongoose.Schema(
     lowStockThreshold: { type: Number, default: 10, min: 0 },
     unitPrice: { type: Number, required: true, min: [0, "Unit price cannot be negative"] },
     supplierName: { type: String, trim: true, default: "" },
+    image: { type: String, default: "" },
     status: {
       type: String,
       enum: ["In Stock", "Low Stock", "Out of Stock"],

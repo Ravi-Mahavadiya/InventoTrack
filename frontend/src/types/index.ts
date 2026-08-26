@@ -28,6 +28,7 @@ export interface Product {
   unitPrice: number;
   supplierName: string;
   status: StockStatus;
+  image?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -94,6 +95,7 @@ export interface ProductFormData {
   quantity: number;
   unitPrice: number;
   supplierName: string;
+  image?: string;
 }
 
 export interface CategoryFormData {
