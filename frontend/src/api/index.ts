@@ -253,3 +253,22 @@ export async function apiGetProductQRCode(productId: string): Promise<string> {
   const { data } = await client.get(`/products/${productId}/qrcode`);
   return data.data;
 }
+
+export interface AuditLog {
+  _id: string;
+  user?: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  action: string;
+  productName: string;
+  sku: string;
+  details: string;
+  createdAt: string;
+}
+
+export async function apiGetAuditLogs(): Promise<AuditLog[]> {
+  const { data } = await client.get("/audit-logs");
+  return data.data;
+}
