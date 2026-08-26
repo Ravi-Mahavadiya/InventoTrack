@@ -15,6 +15,7 @@ router.get("/", controller.getProducts);
 router.get("/export", controller.exportCSV);
 router.post("/import", controller.importCSV);
 router.get("/:id", controller.getProductById);
+router.get("/:id/qrcode", controller.getProductQRCode);
 router.post("/", validation(createProductSchema), controller.createProduct);
 router.put("/:id", validation(updateProductSchema), controller.updateProduct);
 router.patch("/:id/stock", validation(stockAdjustmentSchema), adjustStock);

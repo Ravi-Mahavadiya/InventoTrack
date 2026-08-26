@@ -69,3 +69,12 @@ export const importCSV = async (req, res, next) => {
     return next(err);
   }
 };
+
+export const getProductQRCode = async (req, res, next) => {
+  try {
+    const dataUrl = await productService.generateProductQRCode(req.params.id);
+    return success(res, "QR Code generated successfully", dataUrl, 200);
+  } catch (err) {
+    return next(err);
+  }
+};

@@ -1,5 +1,6 @@
 import Product, { computeStockStatus } from "./product.model.js";
 import Category from "../categories/category.model.js";
+import QRCode from "qrcode";
 
 export const getProducts = async (query = {}) => {
   const {
@@ -307,4 +308,21 @@ export const parseAndImportCSV = async (csvText) => {
   }
 
   return { successCount, failedCount, errors };
+};
+
+export const generateProductQRCode = async (id) => {
+  const product = await Product.findById(id).populate("category");
+  if (!product) {
+    throw Object.assign(new Error("Product not found"), { status: 404 });
+  }
+
+  const priceText = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(product.unitPrice);
+  const text = `SKU: ${product.sku}\nNAME: ${product.name}\nPRICE: ${priceText}`;
+
+  const dataUrl = await QRCode.toDataURL(text, {
+    errorCorrectionLevel: "H",
+    margin: 1,
+    width: 250,
+  });
+  return dataUrl;
 };

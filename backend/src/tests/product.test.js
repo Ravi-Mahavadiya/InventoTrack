@@ -121,4 +121,11 @@ Invalid Price Product,ELEC-ERR-004,Electronics,Invalid price,10,-19.99,Logitech`
     expect(report.errors[0]).toContain("Name is required");
     expect(report.errors[1]).toContain("Unit price must be a positive number");
   });
+
+  test("should generate valid QR code data URL for a product", async () => {
+    const product = await Product.findOne({ sku: "ELEC-HDPH-001" });
+    const dataUrl = await productService.generateProductQRCode(product._id);
+    expect(dataUrl).toBeDefined();
+    expect(dataUrl).toMatch(/^data:image\/png;base64,/);
+  });
 });

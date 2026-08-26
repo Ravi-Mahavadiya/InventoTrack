@@ -248,3 +248,8 @@ export async function apiUpdateProfile(name: string): Promise<User> {
 export async function apiChangePassword(currentPassword, newPassword): Promise<void> {
   await client.put("/users/change-password", { currentPassword, newPassword });
 }
+
+export async function apiGetProductQRCode(productId: string): Promise<string> {
+  const { data } = await client.get(`/products/${productId}/qrcode`);
+  return data.data;
+}
