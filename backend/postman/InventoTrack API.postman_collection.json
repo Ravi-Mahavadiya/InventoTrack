@@ -56,7 +56,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Admin User\",\n  \"email\": \"admin@inventotrack.com\",\n  \"password\": \"AdminPass123!\",\n  \"role\": \"admin\"\n}"
+              "raw": "{\n  \"name\": \"Admin User\",\n  \"email\": \"admin@inventotrack.com\",\n  \"password\": \"AdminPass123!\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
@@ -623,6 +623,41 @@
               "path": [
                 "api",
                 "dashboard"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Users",
+      "item": [
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Staff User\",\n  \"email\": \"staff@inventotrack.com\",\n  \"password\": \"StaffPass123!\",\n  \"role\": \"staff\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
               ]
             }
           }

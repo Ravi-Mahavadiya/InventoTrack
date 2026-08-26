@@ -37,7 +37,7 @@ export const getCategoryById = async (id) => {
 export const createCategory = async ({ name, description }) => {
   const existing = await Category.findOne({ name: new RegExp(`^${name.trim()}$`, "i") });
   if (existing) {
-    throw Object.assign(new Error(`Category '${name}' already exists`), { status: 409 });
+    throw Object.assign(new Error(`Category already exists`), { status: 409 });
   }
 
   const category = await Category.create({ name: name.trim(), description });
@@ -53,7 +53,7 @@ export const updateCategory = async (id, { name, description }) => {
   if (name && name.trim().toLowerCase() !== category.name.toLowerCase()) {
     const existing = await Category.findOne({ name: new RegExp(`^${name.trim()}$`, "i") });
     if (existing) {
-      throw Object.assign(new Error(`Category '${name}' already exists`), { status: 409 });
+      throw Object.assign(new Error(`Category already exists`), { status: 409 });
     }
     category.name = name.trim();
     category.slug = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");

@@ -33,7 +33,7 @@ export const login = async ({ email, password }) => {
   const user = await User.findOne({
     email: email.toLowerCase().trim(),
   }).select("+password");
-  
+
   if (!user) {
     throw Object.assign(new Error("Invalid email or password"), { status: 401 });
   }
@@ -41,7 +41,7 @@ export const login = async ({ email, password }) => {
   if (!ok) {
     throw Object.assign(new Error("Invalid email or password"), { status: 401 });
   }
-  
+
   const token = signAccessToken({ userId: user._id.toString() });
   return {
     user: {
