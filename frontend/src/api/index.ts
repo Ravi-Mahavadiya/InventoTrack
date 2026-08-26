@@ -233,3 +233,18 @@ export async function apiImportProducts(csvText: string): Promise<{ successCount
   const { data } = await client.post("/products/import", { csvText });
   return data.data;
 }
+
+export async function apiUpdateProfile(name: string): Promise<User> {
+  const { data } = await client.put("/users/me", { name });
+  const u = data.data;
+  return {
+    id: u._id,
+    name: u.name,
+    email: u.email,
+    createdAt: u.createdAt,
+  };
+}
+
+export async function apiChangePassword(currentPassword, newPassword): Promise<void> {
+  await client.put("/users/change-password", { currentPassword, newPassword });
+}

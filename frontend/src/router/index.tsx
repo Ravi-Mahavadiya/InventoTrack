@@ -7,6 +7,7 @@ import ProductsPage from "../features/products/ProductsPage";
 import ProductDetailPage from "../features/products/ProductDetailPage";
 import CategoriesPage from "../features/categories/CategoriesPage";
 import StockPage from "../features/stock/StockPage";
+import ProfilePage from "../features/profile/ProfilePage";
 import { Navigate } from "react-router-dom";
 
 export const router = createBrowserRouter([
@@ -22,6 +23,7 @@ export const router = createBrowserRouter([
       { path: "products/:id", element: <ProductDetailPage /> },
       { path: "categories", element: <CategoriesPage /> },
       { path: "stock", element: <StockPage /> },
+      { path: "settings", element: <ProfilePage /> },
     ],
   },
   { path: "*", element: <Navigate to="/dashboard" replace /> },

@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Package, Tag, BarChart3, LogOut, ChevronLeft, ChevronRight, Boxes } from "lucide-react";
+import { LayoutDashboard, Package, Tag, BarChart3, LogOut, ChevronLeft, ChevronRight, Boxes, Settings } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import { useUIStore } from "../../store/uiStore";
 import { cn } from "../../utils/cn";
@@ -9,6 +9,7 @@ const navItems = [
   { to: "/products", icon: Package, label: "Products" },
   { to: "/categories", icon: Tag, label: "Categories" },
   { to: "/stock", icon: BarChart3, label: "Stock Management" },
+  { to: "/settings", icon: Settings, label: "Settings" },
 ];
 
 export default function Sidebar() {

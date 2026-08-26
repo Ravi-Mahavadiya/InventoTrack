@@ -33,10 +33,6 @@ export default function Header() {
         >
           {isDarkMode ? <Sun size={18} className="text-amber-500" /> : <Moon size={18} />}
         </button>
-        <button className="relative p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
-          <Bell size={18} />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-indigo-500 rounded-full" />
-        </button>
         <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center ml-1">
           <span className="text-white text-xs font-semibold">{user?.name.charAt(0).toUpperCase()}</span>
         </div>
