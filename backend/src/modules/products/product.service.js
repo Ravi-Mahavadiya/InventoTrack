@@ -145,3 +145,166 @@ export const deleteProduct = async (id) => {
   await Product.findByIdAndDelete(id);
   return { message: "Product deleted successfully" };
 };
+
+// CSV Export Generator
+export const generateCSV = async () => {
+  const products = await Product.find().populate("category", "name");
+  
+  const escapeCSV = (val) => {
+    if (val === null || val === undefined) return "";
+    const str = String(val);
+    if (str.includes(",") || str.includes("\"") || str.includes("\n") || str.includes("\r")) {
+      return `"${str.replace(/"/g, "\"\"")}"`;
+    }
+    return str;
+  };
+
+  const headers = ["Name", "SKU", "Category", "Description", "Quantity", "UnitPrice", "SupplierName"];
+  const rows = [headers.join(",")];
+
+  for (const p of products) {
+    rows.push([
+      escapeCSV(p.name),
+      escapeCSV(p.sku),
+      escapeCSV(p.category?.name || ""),
+      escapeCSV(p.description || ""),
+      p.quantity,
+      p.unitPrice,
+      escapeCSV(p.supplierName || "")
+    ].join(","));
+  }
+
+  return rows.join("\n");
+};
+
+// CSV Importer / Parser
+export const parseAndImportCSV = async (csvText) => {
+  const lines = csvText.split(/\r?\n/);
+  if (lines.length === 0 || !lines[0].trim()) {
+    throw Object.assign(new Error("Empty CSV content"), { status: 400 });
+  }
+
+  // Parse CSV Line Helper supporting commas and quotes
+  const parseCSVLine = (line) => {
+    const result = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === "\"") {
+        if (inQuotes && line[i + 1] === "\"") {
+          current += "\"";
+          i++; // skip escaped quote
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === "," && !inQuotes) {
+        result.push(current.trim());
+        current = "";
+      } else {
+        current += char;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  };
+
+  const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase());
+  const nameIdx = headers.indexOf("name");
+  const skuIdx = headers.indexOf("sku");
+  const categoryIdx = headers.indexOf("category");
+  const descIdx = headers.indexOf("description");
+  const qtyIdx = headers.indexOf("quantity");
+  const priceIdx = headers.indexOf("unitprice");
+  const supplierIdx = headers.indexOf("suppliername");
+
+  if (nameIdx === -1 || skuIdx === -1) {
+    throw Object.assign(new Error("CSV must contain 'Name' and 'SKU' columns"), { status: 400 });
+  }
+
+  let successCount = 0;
+  let failedCount = 0;
+  const errors = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue; // skip empty lines
+
+    const cells = parseCSVLine(line);
+    const rowNum = i + 1;
+
+    try {
+      const name = cells[nameIdx];
+      const sku = cells[skuIdx]?.toUpperCase();
+      const catName = categoryIdx !== -1 ? cells[categoryIdx] : "";
+      const description = descIdx !== -1 ? cells[descIdx] : "";
+      const quantityStr = qtyIdx !== -1 ? cells[qtyIdx] : "0";
+      const priceStr = priceIdx !== -1 ? cells[priceIdx] : "0";
+      const supplierName = supplierIdx !== -1 ? cells[supplierIdx] : "";
+
+      // Validations
+      if (!name) {
+        throw new Error(`Row ${rowNum}: Name is required`);
+      }
+      if (!sku) {
+        throw new Error(`Row ${rowNum}: SKU is required`);
+      }
+
+      const quantity = parseInt(quantityStr, 10);
+      if (isNaN(quantity) || quantity < 0) {
+        throw new Error(`Row ${rowNum}: Quantity must be a positive integer`);
+      }
+
+      const unitPrice = parseFloat(priceStr);
+      if (isNaN(unitPrice) || unitPrice < 0) {
+        throw new Error(`Row ${rowNum}: Unit price must be a positive number`);
+      }
+
+      // Find or Create Category
+      let categoryId = null;
+      if (catName) {
+        let category = await Category.findOne({ name: new RegExp(`^${catName.trim()}$`, "i") });
+        if (!category) {
+          category = await Category.create({ name: catName.trim() });
+        }
+        categoryId = category._id;
+      } else {
+        // Fallback default category
+        let defaultCategory = await Category.findOne({ name: "Uncategorized" });
+        if (!defaultCategory) {
+          defaultCategory = await Category.create({ name: "Uncategorized", description: "Default classification" });
+        }
+        categoryId = defaultCategory._id;
+      }
+
+      // Upsert Product by SKU
+      const threshold = 10;
+      const status = computeStockStatus(quantity, threshold);
+      const productData = {
+        name,
+        sku,
+        category: categoryId,
+        description,
+        quantity,
+        unitPrice,
+        supplierName,
+        status,
+        lowStockThreshold: threshold
+      };
+
+      const existingProduct = await Product.findOne({ sku });
+      if (existingProduct) {
+        await Product.findByIdAndUpdate(existingProduct._id, productData);
+      } else {
+        await Product.create(productData);
+      }
+
+      successCount++;
+    } catch (err) {
+      failedCount++;
+      errors.push(err.message);
+    }
+  }
+
+  return { successCount, failedCount, errors };
+};

@@ -40,14 +40,15 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
         {isLoading ? (
-          Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)
+          Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
         ) : (
           <>
             <StatCard label="Total Products" value={data!.totalProducts} icon={Package} color="bg-indigo-500" />
             <StatCard label="Categories" value={data!.totalCategories} icon={Tag} color="bg-cyan-500" />
             <StatCard label="Total Stock" value={data!.totalStockQty.toLocaleString()} icon={Layers} color="bg-emerald-500" sub="units across all products" />
+            <StatCard label="Inventory Value" value={formatCurrency(data!.totalValue)} icon={Layers} color="bg-emerald-600" sub="total stock value" />
             <StatCard label="Low Stock" value={data!.lowStockItems} icon={AlertTriangle} color="bg-amber-500" sub="need restocking" />
             <StatCard label="Out of Stock" value={data!.outOfStockItems} icon={ArchiveX} color="bg-red-500" sub="require immediate action" />
           </>

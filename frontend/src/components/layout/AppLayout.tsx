@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Outlet, Navigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import { useUIStore } from "../../store/uiStore";
@@ -7,7 +8,11 @@ import { cn } from "../../utils/cn";
 
 export default function AppLayout() {
   const { isAuthenticated } = useAuthStore();
-  const { sidebarOpen } = useUIStore();
+  const { sidebarOpen, initDarkMode } = useUIStore();
+
+  useEffect(() => {
+    initDarkMode();
+  }, [initDarkMode]);
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 

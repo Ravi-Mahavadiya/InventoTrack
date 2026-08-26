@@ -12,6 +12,8 @@ const router = express.Router();
 router.use(auth);
 
 router.get("/", controller.getProducts);
+router.get("/export", controller.exportCSV);
+router.post("/import", controller.importCSV);
 router.get("/:id", controller.getProductById);
 router.post("/", validation(createProductSchema), controller.createProduct);
 router.put("/:id", validation(updateProductSchema), controller.updateProduct);

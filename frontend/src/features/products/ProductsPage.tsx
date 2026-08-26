@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, ChevronUp, ChevronDown, Pencil, Trash2, Eye, Package } from "lucide-react";
+import { Plus, Search, ChevronUp, ChevronDown, Pencil, Trash2, Eye, Package, Download, Upload } from "lucide-react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/ui/Button";
@@ -12,7 +12,15 @@ import Modal from "../../components/ui/Modal";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import EmptyState from "../../components/ui/EmptyState";
 import ProductForm, { type ProductFormValues } from "./ProductForm";
-import { apiGetProducts, apiGetCategories, apiCreateProduct, apiUpdateProduct, apiDeleteProduct } from "../../api";
+import {
+  apiGetProducts,
+  apiGetCategories,
+  apiCreateProduct,
+  apiUpdateProduct,
+  apiDeleteProduct,
+  apiExportProducts,
+  apiImportProducts
+} from "../../api";
 import { formatCurrency, formatDate } from "../../utils/format";
 import { useDebounce } from "../../hooks/useDebounce";
 import type { Product, StockStatus } from "../../types";
@@ -47,6 +55,12 @@ export default function ProductsPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
+  // CSV Import / Export state
+  const [importOpen, setImportOpen] = useState(false);
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [importReport, setImportReport] = useState<{ successCount: number; failedCount: number; errors: string[] } | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+
   const dSearch = useDebounce(search, 300);
 
   const { data, isLoading } = useQuery({
@@ -73,6 +87,48 @@ export default function ProductsPage() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["products"] }); qc.invalidateQueries({ queryKey: ["dashboard"] }); setDeleteId(null); toast.success("Product deleted."); setSelected(new Set()); },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Error"),
   });
+
+  async function handleExport() {
+    try {
+      const csvContent = await apiExportProducts();
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "inventory-export.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success("CSV file exported successfully!");
+    } catch (e) {
+      toast.error("Failed to export inventory CSV.");
+    }
+  }
+
+  function handleImportSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!csvFile) return;
+
+    setIsImporting(true);
+    setImportReport(null);
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const text = event.target?.result as string;
+        const res = await apiImportProducts(text);
+        setImportReport(res);
+        qc.invalidateQueries({ queryKey: ["products"] });
+        qc.invalidateQueries({ queryKey: ["dashboard"] });
+        toast.success("CSV Import completed!");
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Failed to import CSV.");
+      } finally {
+        setIsImporting(false);
+      }
+    };
+    reader.readAsText(csvFile);
+  }
 
   function toggleSort(field: SortKey) {
     if (sortBy === field) setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -110,6 +166,10 @@ export default function ProductsPage() {
         </div>
         <Select options={categoryOptions} value={categoryId} onChange={(e) => { setCategoryId(e.target.value); setPage(1); }} className="sm:w-44" />
         <Select options={STATUS_OPTIONS} value={status} onChange={(e) => { setStatus(e.target.value as StockStatus | ""); setPage(1); }} className="sm:w-40" />
+        <div className="flex gap-2">
+          <Button onClick={handleExport} variant="secondary" icon={<Download size={15} />}>Export</Button>
+          <Button onClick={() => { setCsvFile(null); setImportReport(null); setImportOpen(true); }} variant="secondary" icon={<Upload size={15} />}>Import</Button>
+        </div>
         <Button onClick={() => setCreateOpen(true)} icon={<Plus size={15} />}>Add Product</Button>
       </div>
 
@@ -227,6 +287,50 @@ export default function ProductsPage() {
             submitLabel="Save Changes"
           />
         )}
+      </Modal>
+
+      {/* Import Modal */}
+      <Modal open={importOpen} onClose={() => setImportOpen(false)} title="Import Inventory from CSV" size="md">
+        <form onSubmit={handleImportSubmit} className="space-y-4">
+          <p className="text-xs text-slate-500 dark:text-slate-400 leading-normal">
+            Upload a CSV file containing your product records. The CSV file must contain columns:
+            <strong className="text-slate-700 dark:text-slate-300"> Name, SKU, Category, Description, Quantity, UnitPrice, SupplierName</strong>.
+            Existing products with matching SKUs will be updated (upserted).
+          </p>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Select CSV File</label>
+            <input
+              type="file"
+              accept=".csv"
+              required
+              onChange={(e) => setCsvFile(e.target.files?.[0] || null)}
+              className="w-full text-xs text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+            />
+          </div>
+
+          {importReport && (
+            <div className="bg-slate-50 p-4 rounded-xl space-y-2 border border-slate-100 text-xs text-slate-600 dark:bg-slate-800/50 dark:border-slate-800">
+              <p className="font-bold text-slate-800 dark:text-slate-200">Import Result Report:</p>
+              <div className="flex gap-4">
+                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Success: {importReport.successCount} rows</span>
+                <span className="text-red-500 dark:text-red-400 font-semibold">Failed: {importReport.failedCount} rows</span>
+              </div>
+              {importReport.errors.length > 0 && (
+                <div className="max-h-28 overflow-y-auto pt-2 border-t border-slate-200/50 dark:border-slate-700/50 space-y-1">
+                  {importReport.errors.map((err, idx) => (
+                    <p key={idx} className="text-red-500 dark:text-red-400 font-mono leading-tight">{err}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <Button type="button" variant="secondary" onClick={() => setImportOpen(false)}>Close</Button>
+            <Button type="submit" loading={isImporting} disabled={!csvFile}>Start Import</Button>
+          </div>
+        </form>
       </Modal>
 
       {/* Delete Confirm */}

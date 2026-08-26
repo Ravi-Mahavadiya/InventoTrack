@@ -113,6 +113,7 @@ export async function apiGetDashboardStats(): Promise<DashboardStats> {
     totalProducts: dashboard.summary.totalProducts ?? 0,
     totalCategories: dashboard.summary.totalCategories ?? 0,
     totalStockQty: dashboard.summary.totalStockQuantity ?? 0,
+    totalValue: dashboard.summary.totalInventoryValue ?? 0,
     lowStockItems: dashboard.summary.lowStockCount ?? 0,
     outOfStockItems: dashboard.summary.outOfStockCount ?? 0,
     topProducts: topProducts.map((p: any) => ({
@@ -221,4 +222,14 @@ export async function apiAdjustStock(productId: string, data: StockAdjustData, _
   };
   const { data: response } = await client.patch(`/products/${productId}/stock`, payload);
   return mapTransaction(response.data.transaction);
+}
+
+export async function apiExportProducts(): Promise<string> {
+  const { data } = await client.get("/products/export");
+  return data;
+}
+
+export async function apiImportProducts(csvText: string): Promise<{ successCount: number; failedCount: number; errors: string[] }> {
+  const { data } = await client.post("/products/import", { csvText });
+  return data.data;
 }

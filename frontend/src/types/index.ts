@@ -68,6 +68,7 @@ export interface DashboardStats {
   totalProducts: number;
   totalCategories: number;
   totalStockQty: number;
+  totalValue: number;
   lowStockItems: number;
   outOfStockItems: number;
   topProducts: { name: string; quantity: number }[];

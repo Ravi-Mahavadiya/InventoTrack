@@ -45,3 +45,27 @@ export const deleteProduct = async (req, res, next) => {
     return next(err);
   }
 };
+
+export const exportCSV = async (req, res, next) => {
+  try {
+    const csvContent = await productService.generateCSV();
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", "attachment; filename=\"inventory-export.csv\"");
+    return res.status(200).send(csvContent);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const importCSV = async (req, res, next) => {
+  try {
+    const { csvText } = req.body;
+    if (!csvText) {
+      throw Object.assign(new Error("csvText is required in request body"), { status: 400 });
+    }
+    const result = await productService.parseAndImportCSV(csvText);
+    return success(res, "CSV import completed", result, 200);
+  } catch (err) {
+    return next(err);
+  }
+};
