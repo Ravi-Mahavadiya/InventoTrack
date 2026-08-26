@@ -237,19 +237,8 @@ export default function ProductsPage() {
                         <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleSelect(p.id)} className="rounded border-slate-300 text-indigo-500 focus:ring-indigo-500" />
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          {p.image ? (
-                            <img src={p.image} alt={p.name} className="w-10 h-10 rounded-lg object-cover border border-slate-100 shrink-0" />
-                          ) : (
-                            <div className="w-10 h-10 bg-slate-150 dark:bg-zinc-800 rounded-lg flex items-center justify-center shrink-0 text-slate-400 dark:text-zinc-500">
-                              <Package size={16} />
-                            </div>
-                          )}
-                          <div>
-                            <p className="font-medium text-slate-800">{p.name}</p>
-                            <p className="text-xs font-mono text-slate-400 mt-0.5">{p.sku}</p>
-                          </div>
-                        </div>
+                        <p className="font-medium text-slate-800">{p.name}</p>
+                        <p className="text-xs font-mono text-slate-400 mt-0.5">{p.sku}</p>
                       </td>
                       <td className="px-4 py-3 text-slate-600">{p.categoryName}</td>
                       <td className="px-4 py-3 font-mono text-slate-700">{p.quantity}</td>

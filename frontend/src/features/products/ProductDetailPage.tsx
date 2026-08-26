@@ -172,13 +172,9 @@ export default function ProductDetailPage() {
 
       {/* Status banner */}
       <div className="bg-white rounded-xl border border-slate-100 p-5 flex items-center gap-4">
-        {product.image ? (
-          <img src={product.image} alt={product.name} className="w-16 h-16 rounded-xl object-cover border border-slate-200 shrink-0 shadow-sm" />
-        ) : (
-          <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0">
-            <Package size={22} className="text-indigo-500" />
-          </div>
-        )}
+        <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0">
+          <Package size={22} className="text-indigo-500" />
+        </div>
         <div className="flex-1">
           <p className="text-2xl font-bold text-slate-900">{product.quantity} <span className="text-base font-normal text-slate-500">units</span></p>
           <p className="text-sm text-slate-500 mt-0.5">Current stock quantity</p>

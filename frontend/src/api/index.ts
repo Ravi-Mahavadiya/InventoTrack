@@ -39,7 +39,6 @@ const mapProduct = (p: any): Product => ({
   unitPrice: p.unitPrice,
   supplierName: p.supplierName,
   status: mapStatusToFrontend(p.status),
-  image: p.image,
   createdAt: p.createdAt,
   updatedAt: p.updatedAt,
 });
@@ -166,7 +165,6 @@ export async function apiCreateProduct(data: ProductFormData): Promise<Product> 
     quantity: data.quantity,
     unitPrice: data.unitPrice,
     supplierName: data.supplierName,
-    image: data.image,
   };
   const { data: response } = await client.post("/products", payload);
   return mapProduct(response.data);
@@ -181,7 +179,6 @@ export async function apiUpdateProduct(id: string, data: ProductFormData): Promi
     quantity: data.quantity,
     unitPrice: data.unitPrice,
     supplierName: data.supplierName,
-    image: data.image,
   };
   const { data: response } = await client.put(`/products/${id}`, payload);
   return mapProduct(response.data);
